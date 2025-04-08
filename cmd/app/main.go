@@ -32,7 +32,7 @@ func main() {
 
 	err := decodeData(&data)
 	if err != nil {
-		log.Println("error decoding data")
+		log.Printf("Failed to decode JSON data: %v", err)
 		return
 	}
 
@@ -41,30 +41,43 @@ func main() {
 	app.Handle("GET /", http.RedirectHandler("/random", http.StatusPermanentRedirect))
 
 	app.Handle("GET /random", http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		defer func() {
+			if m := recover(); m != nil {
+				log.Printf("Panic woyy! %v\n", m)
+				w.WriteHeader(http.StatusInternalServerError)
+				w.Write([]byte("Something went wrong"))
+			}
+		}()
+
 		w.Header().Add("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 
 		rn := rand.IntN(len(data) - 1)
 		b, err := json.Marshal(data[rn])
 		if err != nil {
+			log.Printf("Failed to marshal, error: %v", err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Header().Add("Content-Type", "text/html")
-			w.Write([]byte("oopss!"))
+			w.Write([]byte("Failed to process quote"))
+			return
 		}
 
 		w.Write(b)
 	}))
 
-	log.Println("starting app at port: " + APP_PORT)
-	http.ListenAndServe(fmt.Sprintf("%s:%s", APP_HOST, APP_PORT), app)
+	serverAddr := fmt.Sprintf("%s:%s", APP_HOST, APP_PORT)
+	log.Printf("Server starting on http://%s", serverAddr)
+
+	err = http.ListenAndServe(serverAddr, app)
+	if err != nil {
+		log.Fatalf("Server failed to start: %v", err)
+	}
 }
 
 func decodeData(q *[]QuotesDataStruct) error {
 	dec := json.NewDecoder(bytes.NewReader(fufa))
 	err := dec.Decode(q)
 	if err != nil {
-		return err
+		return fmt.Errorf("JSON decode error: %w", err)
 	}
-
 	return nil
 }
