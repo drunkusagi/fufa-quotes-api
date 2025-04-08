@@ -1,0 +1,3 @@
+[submodule "cmd/app/data"]
+	path = cmd/app/data
+	url = https://github.com/vanirvan/fufufafa-quotes-fetcher
