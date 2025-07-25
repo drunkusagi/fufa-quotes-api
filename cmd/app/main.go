@@ -11,15 +11,15 @@ import (
 )
 
 const (
-	APP_HOST = "127.0.0.1"
-	APP_PORT = "3030"
+	AppHost = "127.0.0.1"
+	AppPort = "3030"
 )
 
 //go:embed data/fufufafa.json
 var fufa []byte
 
 type QuotesDataStruct struct {
-	Id   int64 `json:"id"`
+	ID   int64 `json:"id"`
 	Data struct {
 		Content  string `json:"content"`
 		Datetime string `json:"datetime"`
@@ -64,7 +64,7 @@ func main() {
 		w.Write(b)
 	}))
 
-	serverAddr := fmt.Sprintf("%s:%s", APP_HOST, APP_PORT)
+	serverAddr := fmt.Sprintf("%s:%s", AppHost, AppPort)
 	log.Printf("Server starting on http://%s", serverAddr)
 
 	err = http.ListenAndServe(serverAddr, app)
